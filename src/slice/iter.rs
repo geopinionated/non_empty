@@ -25,6 +25,16 @@ impl<'a, T> Iterator for NonEmptyIter<'a, T> {
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.0.len(), Some(self.0.len()))
+    }
+}
+
+impl<'a, T> DoubleEndedIterator for NonEmptyIter<'a, T> {
+    fn next_back(&mut self) -> Option<<Self as Iterator>::Item> {
+        self.0.next_back()
+    }
 }
 
 impl<'a, T> ExactSizeIterator for NonEmptyIter<'a, T> {
@@ -64,6 +74,15 @@ where
 {
     fn len(&self) -> usize {
         self.iter.len()
+    }
+}
+
+impl<B, I: Iterator + DoubleEndedIterator<Item = B>, F> DoubleEndedIterator for NonEmptyMap<I, F>
+where
+    F: FnMut(I::Item) -> B,
+{
+    fn next_back(&mut self) -> Option<<Self as Iterator>::Item> {
+        self.iter.next_back()
     }
 }
 
@@ -111,5 +130,23 @@ mod tests {
         let result: Vec<_> = vec.iter().map(|v| v * 10).filter(|&v| v > 300).collect();
 
         assert_eq!(result, vec![400, 500]);
+    }
+
+    #[test]
+    fn non_empty_collect_size() {
+        let vec = non_empty_vec![10, 20, 30, 40, 50];
+
+        let result: Vec<_> = vec.iter().enumerate().map(|(v, _)| v * 10).collect();
+
+        assert_eq!(result.capacity(), result.len());
+    }
+
+    #[test]
+    fn non_empty_rev() {
+        let vec = non_empty_vec![10, 20, 30, 40, 50];
+
+        let result: Vec<_> = vec.iter().enumerate().map(|(_, v)| *v).rev().collect();
+
+        assert_eq!(result, vec![50, 40, 30, 20, 10]);
     }
 }

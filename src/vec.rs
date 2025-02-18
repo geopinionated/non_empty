@@ -39,6 +39,10 @@ impl<T> NonEmptyVec<T> {
         NonEmptyVec { inner }
     }
 
+    pub fn capacity(&self) -> usize {
+        self.inner.capacity()
+    }
+
     pub fn non_zero_len(&self) -> NonZeroUsize {
         self.inner.len().try_into().unwrap()
     }
