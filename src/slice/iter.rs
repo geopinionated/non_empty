@@ -112,4 +112,13 @@ mod tests {
 
         assert_eq!(result, vec![400, 500]);
     }
+
+    #[test]
+    fn non_empty_collect_size() {
+        let vec = non_empty_vec![10, 20, 30, 40, 50];
+
+        let result: Vec<_> = vec.iter().enumerate().map(|(v, _)| v * 10).collect();
+
+        assert_eq!(result.capacity(), result.len());
+    }
 }
