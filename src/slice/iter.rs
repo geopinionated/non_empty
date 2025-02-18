@@ -25,6 +25,10 @@ impl<'a, T> Iterator for NonEmptyIter<'a, T> {
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.0.len(), Some(self.0.len()))
+    }
 }
 
 impl<'a, T> ExactSizeIterator for NonEmptyIter<'a, T> {
