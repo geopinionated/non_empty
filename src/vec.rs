@@ -51,12 +51,21 @@ impl<T> NonEmptyVec<T> {
         &self.inner[0]
     }
 
+    pub fn first_mut(&mut self) -> &mut T{
+        &mut self.inner[0]
+    }    
+
     pub fn tail(&self) -> &[T] {
         &self.inner[1..]
     }
 
     pub fn last(&self) -> &T {
         &self.inner[self.len() - 1]
+    }
+
+    pub fn last_mut(&mut self) -> &mut T{
+        let len = self.len();
+        &mut self.inner[len - 1]
     }
 
     pub fn init(&self) -> &[T] {
