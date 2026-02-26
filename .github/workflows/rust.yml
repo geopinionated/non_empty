@@ -15,9 +15,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6    
+    - uses: dtolnay/rust-toolchain@nightly
     - name: Fmt
       run: cargo +nightly fmt --check
+    - uses: dtolnay/rust-toolchain@stable
     - name: Lint
       run : cargo clippy --all-targets --all-features -- --deny warnings
     - name: Build
