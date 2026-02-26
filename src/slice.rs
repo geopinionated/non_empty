@@ -4,6 +4,7 @@ use std::{fmt, num::NonZeroUsize, ops::Deref};
 
 use super::NonEmptyVec;
 pub use iter::NonEmptyIter;
+pub use iter::NonEmptyIterator;
 
 #[derive(PartialEq, Eq)]
 #[repr(transparent)]

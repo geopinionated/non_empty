@@ -1,21 +1,26 @@
-use std::{ops::Deref, slice::Iter};
+use std::{iter::Map, ops::Deref, slice::Iter};
 
 use crate::NonEmptyVec;
+
+pub trait NonEmptyIterator: Iterator {
+    fn is_empty(&self) -> bool {
+        false
+    }
+    fn collect_non_empty(self) -> NonEmptyVec<Self::Item>
+    where
+        Self: Sized,
+    {
+        NonEmptyVec::try_from(self.collect::<Vec<_>>()).unwrap()
+    }
+}
 
 #[derive(Clone)]
 pub struct NonEmptyIter<'a, T>(Iter<'a, T>);
 
 impl<'a, T> NonEmptyIter<'a, T> {
     pub(crate) fn new_unchecked(iter: Iter<'a, T>) -> Self {
+        debug_assert!(iter.len() >= 1, "non empty iter is greater than 0 len");
         NonEmptyIter(iter)
-    }
-
-    pub fn map<B, F>(self, f: F) -> NonEmptyMap<Self, F>
-    where
-        Self: Sized,
-        F: FnMut(&T) -> B,
-    {
-        NonEmptyMap::new(self, f)
     }
 }
 
@@ -43,6 +48,10 @@ impl<'a, T> ExactSizeIterator for NonEmptyIter<'a, T> {
     }
 }
 
+impl<'a, T> NonEmptyIterator for NonEmptyIter<'a, T> {}
+
+impl<B, I: NonEmptyIterator, F> NonEmptyIterator for Map<I, F> where F: FnMut(I::Item) -> B {}
+
 impl<'a, T> Deref for NonEmptyIter<'a, T> {
     type Target = Iter<'a, T>;
 
@@ -51,60 +60,10 @@ impl<'a, T> Deref for NonEmptyIter<'a, T> {
     }
 }
 
-pub struct NonEmptyMap<I, F> {
-    iter: I,
-    f: F,
-}
-
-impl<B, I: Iterator, F> Iterator for NonEmptyMap<I, F>
-where
-    F: FnMut(I::Item) -> B,
-{
-    type Item = B;
-
-    #[inline]
-    fn next(&mut self) -> Option<B> {
-        self.iter.next().map(&mut self.f)
-    }
-}
-
-impl<'a, B, I: ExactSizeIterator, F> ExactSizeIterator for NonEmptyMap<I, F>
-where
-    F: FnMut(I::Item) -> B,
-{
-    fn len(&self) -> usize {
-        self.iter.len()
-    }
-}
-
-impl<B, I: Iterator + DoubleEndedIterator<Item = B>, F> DoubleEndedIterator for NonEmptyMap<I, F>
-where
-    F: FnMut(I::Item) -> B,
-{
-    fn next_back(&mut self) -> Option<<Self as Iterator>::Item> {
-        self.iter.next_back()
-    }
-}
-
-impl<I, F> NonEmptyMap<I, F> {
-    fn new(iter: I, f: F) -> NonEmptyMap<I, F> {
-        NonEmptyMap { iter, f }
-    }
-}
-
-impl<'a, A, B, F> NonEmptyMap<NonEmptyIter<'a, A>, F>
-where
-    F: FnMut(&A) -> B,
-{
-    pub fn collect(self) -> NonEmptyVec<B> {
-        NonEmptyVec::try_from(self.iter.0.map(self.f).collect::<Vec<_>>()).unwrap()
-    }
-}
-
 #[cfg(test)]
 mod tests {
 
-    use crate::{non_empty_vec, NonEmptyVec};
+    use crate::{non_empty_vec, slice::iter::NonEmptyIterator, NonEmptyVec};
 
     #[test]
     fn deref() {
@@ -123,7 +82,7 @@ mod tests {
     fn non_empty_collect() {
         let vec = non_empty_vec![10, 20, 30, 40, 50];
 
-        let result: NonEmptyVec<_> = vec.iter().map(|v| v * 10).collect();
+        let result: NonEmptyVec<_> = vec.iter().map(|v| v * 10).collect_non_empty();
 
         assert_eq!(result, non_empty_vec![100, 200, 300, 400, 500]);
 
