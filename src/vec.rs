@@ -1,31 +1,13 @@
-use std::{
-    fmt,
-    num::NonZeroUsize,
-    ops::{Deref, DerefMut},
-};
+use std::fmt;
+use std::num::NonZeroUsize;
+use std::ops::{Deref, DerefMut};
 
-use crate::slice::NonEmptyIter;
-
-use super::slice::NonEmptySlice;
+use crate::error;
+use crate::slice::{NonEmptyIter, NonEmptySlice};
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct NonEmptyVec<T> {
     inner: Vec<T>,
-}
-
-mod error {
-    use std::{error::Error, fmt};
-
-    #[derive(Debug)]
-    pub struct Empty;
-
-    impl fmt::Display for Empty {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "empty vec")
-        }
-    }
-
-    impl Error for Empty {}
 }
 
 impl<T> NonEmptyVec<T> {
@@ -37,6 +19,11 @@ impl<T> NonEmptyVec<T> {
         let mut inner = Vec::with_capacity(capacity);
         inner.push(first);
         NonEmptyVec { inner }
+    }
+
+    #[deprecated(since = "1.0.0", note = "A NonEmptyVec is never empty.")]
+    pub fn is_empty(&self) -> bool {
+        false
     }
 
     pub fn capacity(&self) -> usize {
@@ -51,9 +38,9 @@ impl<T> NonEmptyVec<T> {
         &self.inner[0]
     }
 
-    pub fn first_mut(&mut self) -> &mut T{
+    pub fn first_mut(&mut self) -> &mut T {
         &mut self.inner[0]
-    }    
+    }
 
     pub fn tail(&self) -> &[T] {
         &self.inner[1..]
@@ -63,7 +50,7 @@ impl<T> NonEmptyVec<T> {
         &self.inner[self.len() - 1]
     }
 
-    pub fn last_mut(&mut self) -> &mut T{
+    pub fn last_mut(&mut self) -> &mut T {
         let len = self.len();
         &mut self.inner[len - 1]
     }
