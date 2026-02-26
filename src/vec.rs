@@ -4,8 +4,6 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use crate::slice::NonEmptyIter;
-
 use super::slice::NonEmptySlice;
 
 #[derive(Clone, PartialEq, Eq)]
@@ -51,9 +49,9 @@ impl<T> NonEmptyVec<T> {
         &self.inner[0]
     }
 
-    pub fn first_mut(&mut self) -> &mut T{
+    pub fn first_mut(&mut self) -> &mut T {
         &mut self.inner[0]
-    }    
+    }
 
     pub fn tail(&self) -> &[T] {
         &self.inner[1..]
@@ -63,7 +61,7 @@ impl<T> NonEmptyVec<T> {
         &self.inner[self.len() - 1]
     }
 
-    pub fn last_mut(&mut self) -> &mut T{
+    pub fn last_mut(&mut self) -> &mut T {
         let len = self.len();
         &mut self.inner[len - 1]
     }
@@ -117,8 +115,11 @@ impl<T> NonEmptyVec<T> {
         self.inner.truncate(len.get())
     }
 
-    pub fn iter(&self) -> NonEmptyIter<'_, T> {
-        NonEmptyIter::new_unchecked(self.inner.iter())
+    /// Map elements with specified function
+    pub fn map<P, F: Fn(T) -> P>(self, f: F) -> NonEmptyVec<P> {
+        let NonEmptyVec { inner } = self;
+        let inner = inner.into_iter().map(f).collect();
+        NonEmptyVec { inner }
     }
 }
 

@@ -1,9 +1,6 @@
-mod iter;
-
 use std::{fmt, num::NonZeroUsize, ops::Deref};
 
 use super::NonEmptyVec;
-pub use iter::NonEmptyIter;
 
 #[derive(PartialEq, Eq)]
 #[repr(transparent)]
@@ -93,10 +90,6 @@ impl<T> NonEmptySlice<T> {
 
     pub fn reverse(&mut self) {
         self.inner.reverse()
-    }
-
-    pub fn iter(&self) -> NonEmptyIter<'_, T> {
-        NonEmptyIter::new_unchecked(self.inner.iter())
     }
 }
 
