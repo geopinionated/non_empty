@@ -1,7 +1,10 @@
 [package]
 name = "non_empty"
 version = "1.0.0"
-edition = "2021"
+edition = "2024"
 description = "Non empty collections"
-authors = ["Grégory Marti <greg.marti@gmail.com>"]
-repository = "https://github.com/gmarti/non_empty"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/geopinionated/non_empty"
+readme = "README.md"
+keywords = ["nonempty", "vector", "iterator"]
+categories = ["data-structures"]

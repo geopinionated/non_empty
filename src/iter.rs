@@ -1,8 +1,11 @@
-use std::{iter::Map, ops::Deref, slice::Iter};
+use std::iter::{Copied, Map, Rev};
+use std::ops::Deref;
+use std::slice::Iter;
 
 use crate::NonEmptyVec;
 
 pub trait NonEmptyIterator: Iterator {
+    #[deprecated(since = "1.0.0", note = "A NonEmptyIterator is never empty.")]
     fn is_empty(&self) -> bool {
         false
     }
@@ -50,6 +53,15 @@ impl<'a, T> ExactSizeIterator for NonEmptyIter<'a, T> {
 
 impl<'a, T> NonEmptyIterator for NonEmptyIter<'a, T> {}
 
+impl<I: NonEmptyIterator + DoubleEndedIterator> NonEmptyIterator for Rev<I> {}
+
+impl<'a, I: NonEmptyIterator, T: 'a> NonEmptyIterator for Copied<I>
+where
+    I: Iterator<Item = &'a T>,
+    T: Copy,
+{
+}
+
 impl<B, I: NonEmptyIterator, F> NonEmptyIterator for Map<I, F> where F: FnMut(I::Item) -> B {}
 
 impl<'a, T> Deref for NonEmptyIter<'a, T> {
@@ -62,8 +74,8 @@ impl<'a, T> Deref for NonEmptyIter<'a, T> {
 
 #[cfg(test)]
 mod tests {
-
-    use crate::{non_empty_vec, slice::iter::NonEmptyIterator, NonEmptyVec};
+    use super::*;
+    use crate::{NonEmptyVec, non_empty_vec};
 
     #[test]
     fn deref() {
@@ -73,7 +85,7 @@ mod tests {
 
         assert_eq!(iter.len(), 5);
 
-        let result: Vec<i32> = iter.map(|&v| v).filter(|&v| v > 30).collect();
+        let result: Vec<i32> = iter.copied().filter(|&v| v > 30).collect();
 
         assert_eq!(result, vec![40, 50]);
     }
@@ -104,8 +116,8 @@ mod tests {
     fn non_empty_rev() {
         let vec = non_empty_vec![10, 20, 30, 40, 50];
 
-        let result: Vec<_> = vec.iter().enumerate().map(|(_, v)| *v).rev().collect();
+        let result: NonEmptyVec<_> = vec.iter().rev().copied().collect_non_empty();
 
-        assert_eq!(result, vec![50, 40, 30, 20, 10]);
+        assert_eq!(result, non_empty_vec![50, 40, 30, 20, 10]);
     }
 }

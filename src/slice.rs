@@ -1,30 +1,14 @@
-mod iter;
+use std::fmt;
+use std::num::NonZeroUsize;
+use std::ops::Deref;
 
-use std::{fmt, num::NonZeroUsize, ops::Deref};
-
-use super::NonEmptyVec;
-pub use iter::NonEmptyIter;
-pub use iter::NonEmptyIterator;
+pub use crate::iter::{NonEmptyIter, NonEmptyIterator};
+use crate::{NonEmptyVec, error};
 
 #[derive(PartialEq, Eq)]
 #[repr(transparent)]
 pub struct NonEmptySlice<T> {
     inner: [T],
-}
-
-mod error {
-    use std::{error::Error, fmt};
-
-    #[derive(Debug)]
-    pub struct Empty;
-
-    impl fmt::Display for Empty {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "empty slice")
-        }
-    }
-
-    impl Error for Empty {}
 }
 
 impl<T> NonEmptySlice<T> {
@@ -40,14 +24,14 @@ impl<T> NonEmptySlice<T> {
         debug_assert!(!slice.is_empty());
         // SAFETY: This type is `repr(transparent)`, so we can safely
         // cast the references like this.
-        &*(slice as *const [T] as *const NonEmptySlice<T>)
+        unsafe { &*(slice as *const [T] as *const NonEmptySlice<T>) }
     }
 
     pub(super) unsafe fn new_unchecked_mut(slice: &mut [T]) -> &mut NonEmptySlice<T> {
         debug_assert!(!slice.is_empty());
         // SAFETY: This type is `repr(transparent)`, so we can safely
         // cast the references like this.
-        &mut *(slice as *mut [T] as *mut NonEmptySlice<T>)
+        unsafe { &mut *(slice as *mut [T] as *mut NonEmptySlice<T>) }
     }
 
     pub(super) unsafe fn unchecked_boxed(slice: Box<[T]>) -> Box<Self> {
@@ -56,8 +40,14 @@ impl<T> NonEmptySlice<T> {
         // cast the pointers like this.
         // `Box` does not necessarily have a guaranteed type layout
         // so it's safer to use methods to convert to/from raw pointers.
+
         let ptr = Box::into_raw(slice) as *mut Self;
-        Box::from_raw(ptr)
+        unsafe { Box::from_raw(ptr) }
+    }
+
+    #[deprecated(since = "1.0.0", note = "A NonEmptySlice is never empty.")]
+    pub fn is_empty(&self) -> bool {
+        false
     }
 
     pub fn non_zero_len(&self) -> NonZeroUsize {
