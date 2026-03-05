@@ -1,4 +1,4 @@
-use std::iter::{Copied, Map, Rev};
+use std::iter::{Copied, Enumerate, Map, Rev};
 use std::ops::Deref;
 use std::slice::{Iter, IterMut};
 
@@ -110,6 +110,11 @@ impl<'a, I: NonEmptyIterator, T: 'a> NonEmptyIterator for Copied<I>
 where
     I: Iterator<Item = &'a T>,
     T: Copy,
+{
+}
+
+impl<'a, I: NonEmptyIterator, T: 'a> NonEmptyIterator for Enumerate<I> where
+    I: Iterator<Item = &'a T>
 {
 }
 
