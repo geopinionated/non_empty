@@ -3,6 +3,7 @@ use std::num::NonZeroUsize;
 use std::ops::{Deref, DerefMut};
 
 use crate::error;
+use crate::iter::NonEmptyIterMut;
 use crate::slice::{NonEmptyIter, NonEmptySlice};
 
 #[derive(Clone, PartialEq, Eq)]
@@ -106,6 +107,10 @@ impl<T> NonEmptyVec<T> {
 
     pub fn iter(&self) -> NonEmptyIter<'_, T> {
         NonEmptyIter::new_unchecked(self.inner.iter())
+    }
+
+    pub fn iter_mut(&mut self) -> NonEmptyIterMut<'_, T> {
+        NonEmptyIterMut::new_unchecked(self.inner.iter_mut())
     }
 }
 

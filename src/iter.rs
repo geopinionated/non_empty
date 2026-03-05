@@ -1,6 +1,6 @@
 use std::iter::{Copied, Map, Rev};
 use std::ops::Deref;
-use std::slice::Iter;
+use std::slice::{Iter, IterMut};
 
 use crate::NonEmptyVec;
 
@@ -53,6 +53,57 @@ impl<'a, T> ExactSizeIterator for NonEmptyIter<'a, T> {
 
 impl<'a, T> NonEmptyIterator for NonEmptyIter<'a, T> {}
 
+impl<'a, T> Deref for NonEmptyIter<'a, T> {
+    type Target = Iter<'a, T>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+pub struct NonEmptyIterMut<'a, T>(IterMut<'a, T>);
+
+impl<'a, T> NonEmptyIterMut<'a, T> {
+    pub(crate) fn new_unchecked(iter: IterMut<'a, T>) -> Self {
+        debug_assert!(iter.len() >= 1, "non empty iter is greater than 0 len");
+        NonEmptyIterMut(iter)
+    }
+}
+
+impl<'a, T> Iterator for NonEmptyIterMut<'a, T> {
+    type Item = &'a mut T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.0.len(), Some(self.0.len()))
+    }
+}
+
+impl<'a, T> DoubleEndedIterator for NonEmptyIterMut<'a, T> {
+    fn next_back(&mut self) -> Option<<Self as Iterator>::Item> {
+        self.0.next_back()
+    }
+}
+
+impl<'a, T> ExactSizeIterator for NonEmptyIterMut<'a, T> {
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl<'a, T> NonEmptyIterator for NonEmptyIterMut<'a, T> {}
+
+impl<'a, T> Deref for NonEmptyIterMut<'a, T> {
+    type Target = IterMut<'a, T>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 impl<I: NonEmptyIterator + DoubleEndedIterator> NonEmptyIterator for Rev<I> {}
 
 impl<'a, I: NonEmptyIterator, T: 'a> NonEmptyIterator for Copied<I>
@@ -63,14 +114,6 @@ where
 }
 
 impl<B, I: NonEmptyIterator, F> NonEmptyIterator for Map<I, F> where F: FnMut(I::Item) -> B {}
-
-impl<'a, T> Deref for NonEmptyIter<'a, T> {
-    type Target = Iter<'a, T>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 
 #[cfg(test)]
 mod tests {

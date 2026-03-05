@@ -2,6 +2,7 @@ use std::fmt;
 use std::num::NonZeroUsize;
 use std::ops::Deref;
 
+use crate::iter::NonEmptyIterMut;
 pub use crate::iter::{NonEmptyIter, NonEmptyIterator};
 use crate::{NonEmptyVec, error};
 
@@ -88,6 +89,10 @@ impl<T> NonEmptySlice<T> {
 
     pub fn iter(&self) -> NonEmptyIter<'_, T> {
         NonEmptyIter::new_unchecked(self.inner.iter())
+    }
+
+    pub fn iter_mut(&mut self) -> NonEmptyIterMut<'_, T> {
+        NonEmptyIterMut::new_unchecked(self.inner.iter_mut())
     }
 }
 
