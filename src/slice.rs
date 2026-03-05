@@ -1,6 +1,7 @@
 use std::fmt;
 use std::num::NonZeroUsize;
-use std::ops::Deref;
+use std::ops::{Deref, Index, IndexMut};
+use std::slice::SliceIndex;
 
 use crate::iter::NonEmptyIterMut;
 pub use crate::iter::{NonEmptyIter, NonEmptyIterator};
@@ -129,6 +130,28 @@ impl<T> Deref for NonEmptySlice<T> {
     #[inline]
     fn deref(&self) -> &Self::Target {
         &self.inner
+    }
+}
+
+impl<I, T> Index<I> for NonEmptySlice<T>
+where
+    I: SliceIndex<[T]>,
+{
+    type Output = I::Output;
+
+    #[inline]
+    fn index(&self, index: I) -> &Self::Output {
+        self.inner.index(index)
+    }
+}
+
+impl<I, T> IndexMut<I> for NonEmptySlice<T>
+where
+    I: SliceIndex<[T]>,
+{
+    #[inline]
+    fn index_mut(&mut self, index: I) -> &mut Self::Output {
+        self.inner.index_mut(index)
     }
 }
 
